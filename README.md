@@ -1,6 +1,6 @@
 # Tcell.5mC.ID
 
-## Epigenetic T cell subtyping using long reads
+## Targeted Epigenetic T cell Subtyping Using Long Reads
 
 Code required to reproduce the analyses published in Goldsmith et al. 2022
 

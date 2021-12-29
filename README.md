@@ -2,16 +2,16 @@
 
 ## Epigenetic T cell subtyping using long reads
 
-### By CD Goldsmith and H Hernandez
+Code required to reproduce the analyses published in Goldsmith et al. 2022
 
 # main analyses:
 
-- differential expression Th0 vs Th1
-- differential expression Th0 vs Th2
-- differential expression Th0 vs Th17
-- differential expression Th0 vs Treg
-- differential expression Treg vs tTreg vs DMK
-- differential expression Th17 WT vs TGFb-KO
+- differential methylation Th0 vs Th1
+- differential methylation Th0 vs Th2
+- differential methylation Th0 vs Th17
+- differential methylation Th0 vs Treg
+- differential methylation Treg vs tTreg vs DMK
+- differential methylation Th17 WT vs TGFb-KO
 
 - off-target TF enrichment analysis
 

@@ -1,41 +1,58 @@
 
 ######################################
-# Jan 2022
-# megalodon v.2.4.1
-# guppy_basecaller v.6.0.1
+# Mar 2022
+
+# NVIDIA-SMI 510.39.01
+# CUDA Version: 11.6
+# re-installed tensorflow with pip
+# check version with: pip list | grep tensorflow
+# tensorflow                         2.7.0
+# tensorflow-estimator               2.7.0
+# tensorflow-io-gcs-filesystem       0.23.1
+
+# python                    3.7.4
+# numpy                     1.21.4
+
+# guppy_basecaller -v : Version 6.1.1
+# minimap2 version 2.22
+
+# megalodon                 2.5.0
+# ont-pyguppy-client-lib    6.1.1
+# ont-remora		    1.0.0
+
+# fresh Rerio install
+
+
+# 5hmC & 5mC in CpG context (all context still not available for Remora)
 ######################################
 
 conda activate megalodon
 
-DIR=/mnt/sdb/results/nano/Tcell_ID/20210113
+OUTDIR=/mnt/sdb/results/nano/Tcell_ID/20210113
 FAST5PATH=/mnt/sdb/projects/nano/Tcell_ID/20210113/fast5
-REFERENCE=/mnt/sdb/refs/GRCm38.p6.genome.fa
-RERIO_PATH=/mnt/sdb/scripts/rerio/basecall_models/
-CONFIG="res_dna_r941_min_modbases_5mC_5hmC_v001.cfg"
+GUPPY=/opt/ont/guppy/bin/guppy_basecall_server
+REF=/mnt/sdb/refs/GRCm38.p6.genome.fa
+CONFIG=dna_r9.4.1_450bps_fast.cfg
 
-megalodon $FAST5PATH \
-    --guppy-params "-d $RERIO_PATH" \
+megalodon \
+    $FAST5PATH \
+    --guppy-server-path $GUPPY \
     --guppy-config $CONFIG \
-    --guppy-server-path /opt/ont/guppy/bin/guppy_basecall_server  \
-    --outputs basecalls mods per_read_mods mod_basecalls mappings mod_mappings  \
-    --write-mod-log-probs \
-    --write-mods-text \
-    --mappings-format bam \
-    --sort-mappings \
-    --mod-map-emulate-bisulfite \
-    --mappings-format bam \
-    --mod-map-base-conv C T \
-    --mod-map-base-conv m C \
-    --reference ${REFERENCE} \
-    --mod-output-formats bedmethyl modvcf wiggle \
-    --output-directory ${DIR} \
-    --devices "cuda:all:100%" \
-    --processes 16
-
-conda deactivate
+    --remora-modified-bases dna_r9.4.1_e8 fast 0.0.0 5hmc_5mc CG 0 \
+    --outputs basecalls mappings mod_mappings mods \
+    --reference $REF \
+    --output-directory $OUTDIR \
+    --overwrite \
+    --devices 0 \
+    --processes 8
 
 
 ######################################
+
+
+
+
+
 
 
 

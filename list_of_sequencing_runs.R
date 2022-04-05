@@ -1,10 +1,7 @@
 
 #######################################################
 
-# 190721
-# Treg ID under DMK exposure
-# Maria/Valerie/NaomiChloe/Julien
-# cas9 targeting data
+# April 2022
 
 #######################################################
 
@@ -63,18 +60,6 @@ Cas9 enrichment for immune identity panel Sample ID CAR152 TR (pooled samples 7 
 
 
 
-#20210113
-Crispr targeted LIGATION sequencing SQK-LSK109
-EXP-NBD104
-RB1=Th0, RB2=Th1, RB3=Th2, RB4=TH17
-Imune identity panel samples from Valeries Mice (second set of samples sent) Replicates from the AK28 set
-
-#20210312
-Crispr targeted LIGATION sequencing SQK-LSK109
-EXP-NBD104
-RB1=ID66,Th0, RB2=ID69,Th1, RB3=ID72,Th2, RB4=ID77,TH17
-Cas9 enrichment of Imune identity panel samples from Valeries Mice (second set of samples sent) Replicates from the AKXX set
-
 #20210317
 Crispr targeted LIGATION sequencing SQK-LSK109
 EXP-NBD104
@@ -94,4 +79,39 @@ RB11: Th17nTGFB RB12: Th17nTGFB
 Cas9 enrichment of Immune identity panel samples 
 
 #######################################################
+# basecalled with megalodon + remora model (5mC_5hmC, CpG context)
+#######################################################
+
+
+#20210113
+Crispr targeted LIGATION sequencing SQK-LSK109
+EXP-NBD104
+RB1=Th0, RB2=Th1, RB3=Th2, RB4=TH17
+Imune identity panel samples from Valeries Mice (second set of samples sent) Replicates from the AK28 set
+
+#20210312
+Crispr targeted LIGATION sequencing SQK-LSK109
+EXP-NBD104
+RB1=ID66,Th0, RB2=ID69,Th1, RB3=ID72,Th2, RB4=ID77,TH17
+Cas9 enrichment of Imune identity panel samples from Valeries Mice (second set of samples sent) Replicates from the AKXX set
+
+
+
+# Th17 uncalled
+###############
+
+# KO: 20210402
+
+# WT: 20210419
+
+
+
+#######################################################
+
+
+
+
+
+
+
 

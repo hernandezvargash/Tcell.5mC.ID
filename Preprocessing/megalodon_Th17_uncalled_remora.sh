@@ -48,11 +48,11 @@ megalodon \
     --devices 0 \
     --processes 8
 
-conda activate megalodon
+conda deactivate
 
 
 ######################################
-# 20210419
+# 20210402
 ######################################
 
 conda activate megalodon
@@ -75,7 +75,7 @@ megalodon \
     --devices 0 \
     --processes 8
 
-conda activate megalodon
+conda deactivate
 
 
 ######################################

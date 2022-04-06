@@ -1,3 +1,4 @@
+ #! /bin/sh.
 
 ######################################
 # Apr 2022
@@ -18,7 +19,6 @@ GUPPY=/opt/ont/guppy/bin/guppy_basecall_server
 REF=/mnt/sdb/refs/GRCm38.p6.genome.fa
 CONFIG=dna_r9.4.1_450bps_fast.cfg
 
-#!/bin/sh
 for barcode in $(basename -a $(ls -d $FAST5PATH/*/))
 do 
 	megalodon $FAST5PATH/$barcode/ \

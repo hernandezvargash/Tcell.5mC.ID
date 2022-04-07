@@ -16,8 +16,6 @@ guppy_basecaller --input_path fast5 --save_path demultiplexed_fast5s --flowcell 
 # demux_fast5 (using ont_fast5_api)
 ######################################
 
-cd '/mnt/sdb/projects/nano/Tcell_ID/20201210/no_sample/20201210_1408_MN32885_FAO95644_2de3ca5f/demultiplexed_fast5s/'
-
 demux_fast5 --input /mnt/sdb/projects/nano/Tcell_ID/20201210/no_sample/20201210_1408_MN32885_FAO95644_2de3ca5f/fast5 --save_path /mnt/sdb/projects/nano/Tcell_ID/20201210/no_sample/20201210_1408_MN32885_FAO95644_2de3ca5f/demux --summary_file /mnt/sdb/projects/nano/Tcell_ID/20201210/no_sample/20201210_1408_MN32885_FAO95644_2de3ca5f/demultiplexed_fast5s/sequencing_summary.txt
 
 

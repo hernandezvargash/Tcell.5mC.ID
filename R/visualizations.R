@@ -105,6 +105,8 @@ for(i in 1:nrow(all.DMRs)){
 # heatmap -----------------------------------------------------------------
 
 
+load("BSobj_Th_5mCpG.RData")
+
 hasBeenSmoothed(BSobj)
 smoothed.BSoj <- BSmooth(BSobj)
 
@@ -134,6 +136,35 @@ pheatmap::pheatmap(heatmap.data,
 
 save(smoothed.BSoj, file = "smoothed.BSobj.RData")
 
+
+# heatmap with targeted regions
+
+load(file = "smoothed.BSobj.RData")
+
+regions <- read.csv("targeted.regions.csv", row.names = 1)
+regions <- regions[-11, ] # remove Itgb8
+head(regions)
+
+heatmap.data <- bsseq::getMeth(BSseq = smoothed.BSoj,
+                               regions = GRanges(regions),
+                               type = "smooth",
+                               what = "perRegion")
+head(heatmap.data)
+rownames(heatmap.data) <- rownames(regions)
+
+heatmap.data %>%   na.omit() %>% as.matrix()
+
+pheatmap::pheatmap(heatmap.data,
+                   scale = "row",
+                   annotation_col =  as.data.frame(pData(smoothed.BSoj)[, c(2,5)]),
+                   show_rownames = T, fontsize_row = 12,
+                   show_colnames = T,
+                   angle_col = 45,
+                   border_color = "grey",
+                   main = "Z-Scores of 5mC in all targeted regions",
+                   fontsize = 12,
+                   cellwidth = 25,
+                   cellheight = 20)
 
 
 

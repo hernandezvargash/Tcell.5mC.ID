@@ -166,7 +166,7 @@ save(BSobj, file= "BSobj_Th_5hmCpG.RData")
 
 # fit DSS multi-factor --------------------------------------------------------
 
-load("BSobj_Th_5mCpG.RData")
+load("BSobj_Th_5hmCpG.RData")
 
 genes <- annotateTranscripts(TxDb.Mmusculus.UCSC.mm10.knownGene)
 
@@ -194,7 +194,7 @@ table(DMLtest.Th1.vs.Th0$fdrs < 0.05) # 0
 
 # Th2 vs Th0 --------------------------------------------------------------
 
-load("DMLfit.RData")
+load("DMLfit_5hmC.RData")
 
 head(DMLfit$X)
 
@@ -225,7 +225,7 @@ write.csv(DMLtest.Th1.vs.Th0.regions, file="DMLtest_5hmC.Th2.vs.Th0.regions.csv"
 
 # Th17 vs Th0 --------------------------------------------------------------
 
-load("DMLfit.RData")
+load("DMLfit_5hmC.RData")
 
 head(DMLfit$X)
 
@@ -303,6 +303,72 @@ pheatmap::pheatmap(heatmap.data,
                    fontsize = 12,
                    cellwidth = 25,
                    cellheight = 20)
+
+
+
+# combined 5mC/5hmC heatmap -----------------------------------------------------------------
+
+regions <- read.csv("targeted.regions.csv", row.names = 1)
+regions <- regions[-11, ] # remove Itgb8
+head(regions)
+
+load(file = "smoothed.BSobj.RData")
+
+heatmap.data.5mC <- bsseq::getMeth(BSseq = smoothed.BSoj,
+                               regions = GRanges(regions),
+                               type = "smooth",
+                               what = "perRegion")
+
+load("smoothed.5hmC.BSobj.RData")
+
+heatmap.data.5hmC <- bsseq::getMeth(BSseq = smoothed.BSoj,
+                               regions = GRanges(regions),
+                               type = "smooth",
+                               what = "perRegion")
+
+rownames(heatmap.data.5mC) <- paste0(rownames(regions),".5mC")
+head(heatmap.data.5mC)
+rownames(heatmap.data.5hmC) <- paste0(rownames(regions),".5hmC")
+head(heatmap.data.5hmC)
+
+# 5mC/5hmC aggregation
+
+heatmap.data <- rbind(heatmap.data.5mC, heatmap.data.5hmC)
+
+heatmap.data %>%   na.omit() %>% as.matrix()
+
+pheatmap::pheatmap(heatmap.data,
+                   scale = "row",
+                   annotation_col =  as.data.frame(pData(smoothed.BSoj)[, c(2,5)]),
+                   show_rownames = T, fontsize_row = 12,
+                   show_colnames = T,
+                   angle_col = 45,
+                   border_color = "grey",
+                   main = "Z-Scores of 5mC & 5hmC in all targeted regions",
+                   fontsize = 12,
+                   cellwidth = 25,
+                   cellheight = 20)
+
+# 5hmC/5mC "activity" ratio
+
+heatmap.data <- heatmap.data.5hmC/ heatmap.data.5mC
+rownames(heatmap.data) <- rownames(regions)
+head(heatmap.data)
+
+heatmap.data %>%   na.omit() %>% as.matrix()
+
+pheatmap::pheatmap(heatmap.data,
+                   scale = "row",
+                   annotation_col =  as.data.frame(pData(smoothed.BSoj)[, c(2,5)]),
+                   show_rownames = T, fontsize_row = 12,
+                   show_colnames = T,
+                   angle_col = 45,
+                   border_color = "grey",
+                   main = "'Activity' 5hmC/5mC ratio in all targeted regions",
+                   fontsize = 12,
+                   cellwidth = 25,
+                   cellheight = 20)
+
 
 
 

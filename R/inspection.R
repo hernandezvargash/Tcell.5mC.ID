@@ -12,6 +12,10 @@
 # EXP-NBD104 barcoding
 # RB1=Th0, RB2=Th1, RB3=Th2, RB4=TH17
 
+# basecalled with megalodon + modification called with remora
+# remora model (fast): dna_r9.4.1_e8 fast 0.0.0 5hmc_5mc CG 0
+# more info on remora: https://www.youtube.com/watch?v=y8nywBuSbpU
+
 
 # libraries ---------------------------------------------------------------
 

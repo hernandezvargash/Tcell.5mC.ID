@@ -274,8 +274,10 @@ plotDMRs(BSobj, regions=regions[sel.num,], testCovariate="group", addRegions = N
 # heatmap -----------------------------------------------------------------
 
 load("BSobj_5mCpG_integrated.RData")
-
 hasBeenSmoothed(BSobj)
+
+regions <- read.csv("targeted.regions.csv", row.names = 1)
+head(regions)
 
 
 # smoothed.BSoj <- BSmooth(BSobj)

@@ -74,6 +74,42 @@ conda deactivate
 
 ######################################
 
+# to visualize reads in IGV
+# based on: https://github.com/igvteam/igv/issues/991
+
+
+# sort and index with samtools, as in this example:
+
+cd '/mnt/sdb/results/nano/Tcell_ID/20210113/barcode01/'
+
+samtools sort mod_mappings.bam > mod_mappings.sorted.bam
+
+samtools index mod_mappings.sorted.bam
+
+# in IGV use: right-click -> color alignments by -> base modifications
+
+######################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -227,6 +227,20 @@ autoplot(pca_res, data = sel.pdata, colour = 'group', size = 3) +
 
 # DMRplots ----------------------------------------------------------------
 
+rm(list=ls())
+
+suppressPackageStartupMessages({
+  library(bsseq)
+  library(dmrseq)
+  library(pals)
+  library(scales)
+  
+})
+
+annoTrack <- getAnnot("mm10")
+
+setwd("~/Dropbox/BioInfo/Lab/Tcell_ID")
+
 load("BSobj_5mCpG_integrated.RData")
 
 regions <- read.csv("targeted.regions.csv", row.names = 1)
@@ -238,11 +252,9 @@ pheno$group[20] <- "Th17_noTGFb"
 
 table(pheno$group)
 
-library(pals)
 group.colors <- alphabet(10)
 group.colors <- rainbow(10)
 group.colors <- c(rainbow(10), alphabet(10))
-library(scales)
 show_col(group.colors)
 show_col(group.colors[c(1,2,3,6,8,9,15,13,19,20)])
 
@@ -265,8 +277,6 @@ sel.num <- 11 # selected region
 plotDMRs(BSobj, regions=regions[sel.num,], testCovariate="group", addRegions = NULL, 
          main = paste0(rownames(regions)[sel.num], " Targeted Region_5mC"),
          extend = 0, annoTrack = annoTrack, highlightMain = F, qval = F, stat = F, horizLegend = T)
-
-
 
 
 

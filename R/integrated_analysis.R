@@ -38,6 +38,9 @@
 # more info on remora: https://www.youtube.com/watch?v=y8nywBuSbpU
 
 
+# Targeted loci: Foxp3, Il17a, Rorc, Ifng, Il10, Maf, Il4, Gata3, Zfp362, Tbx21, Itgb8
+
+
 
 # libraries ---------------------------------------------------------------
 

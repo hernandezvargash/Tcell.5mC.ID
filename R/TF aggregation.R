@@ -259,6 +259,96 @@ for(t in 1:length(sel.TFs)){
 
 
 
+# 5hmC aggregation --------------------------------------------------------------------
+
+rm(list = ls())
+
+# phenotype data
+
+bed.files.full <- list.files(path = "./remora/", pattern = "5hmC.bed", recursive = T, full.names = T)
+bed.files.full <- bed.files.full[1:18] # omitting uncalled experiment
+bed.files <- list.files(path = "./remora/", pattern = "5hmC.bed", recursive = T, full.names = F)
+bed.files <- bed.files[1:18] # omitting uncalled experiment
+pdata <- as.data.frame(str_split(bed.files, "/", simplify = T))
+colnames(pdata) <- c("run","group","basename")
+pdata$bed.file <- bed.files
+pdata$origin <- c(rep("in_vitro", 2), "ex_vivo", rep("in_vitro", 2), "ex_vivo", rep("in_vitro", 12))
+pdata$protocol <- c(rep("Cas9", 18))
+rownames(pdata) <- paste0(pdata$group, "_", pdata$run)
+colnames(pdata)[2] <- "sampleType"
+head(pdata)
+
+
+# TF data
+
+TFs.of.interest <- c("GATA3","TBX21","FOXP3","STAT3","BCL6","RUNX3","STAT1")
+
+# list all available mm10 TFs
+all.TFs <- list.files("cistrome_mm10/mm10_cistrome/")
+# select motifs with highest confidence
+all.TFs <- all.TFs[grep("MOUSE.A", all.TFs)]
+all.TFs <- str_sub(all.TFs, 1, -13)
+
+# check for available TFs of interest
+sel.TFs <- intersect(TFs.of.interest, all.TFs)
+
+
+for(t in 1:length(sel.TFs)){
+  
+  regions <- import.bed(paste0("cistrome_mm10/mm10_cistrome/", sel.TFs[t], "_MOUSE.A.bed"))
+  expanded.regions <- resize(regions, 2000, fix="center")
+  
+  bed.list <- list()
+  
+  for(i in 1:18){ # omitting uncalled experiment
+    bed.list[[i]] <- import.bed(bed.files.full[i], which = expanded.regions)
+    bed.list[[i]] <- keepStandardChromosomes(bed.list[[i]], pruning.mode = "coarse")
+    bed.list[[i]] <- sort(bed.list[[i]])
+    bed.list[[i]]$blockSizes <- as.numeric(as.character(bed.list[[i]]$blockSizes))
+    
+  }
+  
+  names(bed.list) <- rownames(pdata)
+  
+  pre.DT <- lapply(bed.list, function(x) as.data.frame(x))
+  pre.DT <- lapply(pre.DT, function(x) x[,c("seqnames","start","blockSizes","blockCount")])
+  pre.DT <- lapply(pre.DT, function(x) {colnames(x)<-c("chr", "start", "methylProp", "coverage");x})
+  pre.DT <- lapply(pre.DT, function(x)  transform(x, methylProp = methylProp/100))
+  
+  BSDTList <- lapply(pre.DT, data.table)
+  
+  bigBin <- lapply(X=BSDTList, FUN=aggregateMethyl, GRList=expanded.regions, binNum=21, minBaseCovPerBin = 1)
+  bigBin <- lapply(bigBin, function(x) transform(x, featureID = sel.TFs[t]) )
+  bigBinDT <- rbindNamedList(bigBin)
+  setkey(bigBinDT, sampleName)
+  annotDT <- data.table(sampleName = names(BSDTList), pdata)
+  setkey(annotDT, sampleName)
+  
+  bigBinDT2 <- merge(bigBinDT, annotDT, all.x=TRUE)
+  
+  jpeg(filename = paste0("MIRA_Profile_5hmC_", sel.TFs[t], ".jpeg"), height = 800, width = 800, quality = 100)
+  p1 <- plotMIRAProfiles(binnedRegDT=bigBinDT2, plotType = "jitter", colBlindOption = T)
+  plot(p1)
+  dev.off()
+  
+  sampleScores <- calcMIRAScore(bigBinDT2,
+                                shoulderShift="auto",
+                                regionSetIDColName="featureID",
+                                sampleIDColName="sampleName")
+  sampleScores
+  sampleScores$sampleType <- annotDT$sampleType
+  
+  
+  jpeg(filename = paste0("MIRA_Scores_5hmC_", sel.TFs[t], ".jpeg"), height = 800, width = 800, quality = 100)
+  p2 <- plotMIRAScores(sampleScores, colBlindOption = T)
+  plot(p2)
+  dev.off()
+  
+  rm(regions, expanded.regions, bigBinDT2, sampleScores, p1, p2)
+  
+}
+
+
 
 
 # end ---------------------------------------------------------------------

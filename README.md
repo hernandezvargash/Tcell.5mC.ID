@@ -2,8 +2,7 @@
 
 ## Targeted Epigenetic T cell Subtyping Using Long Reads
 
-Code required to reproduce the analyses published in Goldsmith et al. 2022
-
+Code required to reproduce the analyses published in Goldsmith et al. BiorXiv 2022, "T-cell epigenetic identity profile sequencing (TEIP-seq) for single molecule methylation (5mC) and hydroxymethylation (5hmC) in native DNA long reads".
 
 # Rationale
 
@@ -39,6 +38,7 @@ Off-targets were analysed for transcription factor (TF) activity using the cistr
 
 # Associated website
 
+...
 
 
 ---

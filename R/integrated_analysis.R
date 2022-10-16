@@ -65,6 +65,8 @@ suppressPackageStartupMessages({
   library(DMRcate)
   library(biomaRt)
   library(TxDb.Mmusculus.UCSC.mm10.knownGene)
+  library(ggfortify)
+  
 })
 
 
@@ -187,7 +189,7 @@ sampleNames(BSobj)
 pData(BSobj) <- pdata
 
 save(BSobj, file= "BSobj_5mCpG_integrated.RData")
-save(BSobj, file= "BSobj_5mCpG_integrated.all.genome.RData")
+#save(BSobj, file= "BSobj_5mCpG_integrated.all.genome.RData")
 
 
 
@@ -219,7 +221,6 @@ t.counts[1:5,1:10]
 pca_res <- prcomp(t.counts, scale. = F)
 
 
-library(ggfortify)
 autoplot(pca_res, data = sel.pdata, colour = 'group', size = 3) +
   theme_minimal() +
 #  scale_color_manual(values = group.colors) +
@@ -322,7 +323,7 @@ pheatmap::pheatmap(heatmap.data,
 # differential methylation (5mC) --------------------------------------------------------
 
 load("BSobj_5mCpG_integrated.RData")
-load("BSobj_5mCpG_integrated.all.genome.RData")
+#load("BSobj_5mCpG_integrated.all.genome.RData")
 
 pheno <- as.data.frame(pData(BSobj))
 pheno$group

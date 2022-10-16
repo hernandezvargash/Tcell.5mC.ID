@@ -2,9 +2,9 @@
 #######################################################
 
 # 190721
-# Treg ID under DMK exposure
-# Maria/Valerie/NaomiChloe/Julien
-# cas9 targeting data
+# Code for:
+# Regulatory T cell differentiation is controlled by αKG-induced alterations in mitochondrial metabolism and lipid homeostasis
+# https://pubmed.ncbi.nlm.nih.gov/34731632/
 
 #######################################################
 

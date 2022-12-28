@@ -354,6 +354,9 @@ pheatmap::pheatmap(heatmap.data,
                    cellheight = 20)
 
 
+write.csv(heatmap.data, file = "5mC.heatmap.data.csv")
+
+
 
 # differential methylation (5mC) --------------------------------------------------------
 
@@ -597,6 +600,7 @@ pheatmap::pheatmap(heatmap.data,
                    cellwidth = 20,
                    cellheight = 20)
 
+write.csv(heatmap.data, file = "5mC.targeted.heatmap.data.csv")
 
 
 

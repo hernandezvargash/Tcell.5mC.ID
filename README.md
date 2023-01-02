@@ -2,20 +2,11 @@
 
 ## Targeted Epigenetic T cell Subtyping Using Long Reads
 
-Code required to reproduce the analyses published in Goldsmith et al. BiorXiv 2022, "T-cell epigenetic identity profile sequencing (TEIP-seq) for single molecule methylation (5mC) and hydroxymethylation (5hmC) in native DNA long reads".
+Code required to reproduce the analyses published in Goldsmith et al. BiorXiv 2023, *"Single molecule DNA methylation and hydroxymethylation reveal unique epigenetic identity profiles of T helper cells"*, by Chloe Goldsmith, Olivier Fesneau, Valentin Thevin, Maria I. Matias, Julie Perrault, Ali Hani Abid, Naomi Taylor, Valérie Dardalhon, Julien C. Marie, and Hector Hernandez-Vargas.
 
 # Rationale
 
-CD4+ T cells are key mediators of immunity and immunologic memory. Naive CD4+ T cells differentiate into effector T cells with different effector phenotypes which regulate the adaptive immune response. Importantly, T cells are often dysregulated in chronic inflammatory conditions, in particular autoimmune disease and cancer.
-
-Differentiated CD4+ T cells have classically been divided into distinct stable subtypes, including Th1, Th2, Th9, Th17, Th22, Tfh, Treg and Tr1 cells. However, plasticity is an important feature of T cells, whereby they adapt their functions in response to changing circumstances forming a continuum of polarized phenotypes. Plasticity provides advantages to the host for protective immunity and immune control. A loss of effector plasticity is a hallmark of T cell ageing and is linked with reduced immunity and immune function. 
-
-Importantly, the identity and plasticity of T cells is regulated by mechanisms such as DNA methylation. The so-called "epigenetic"" landscape defined by DNA methylation makes each cell type unique. Therefore, mapping epigenetics represents an ideal way to discriminate cell types by ‘epigenotype’. DNA methylation (5mC) is the most stable and most widely studied epigenetic marks and is involved in gene silencing. DNA hydroxymethylation (5hmC) is largely understudied, but recently has been linked to gene activity during differentiation.
-
-Despite the evidence for 5mC/5hmC as a marker of cellular identity, in particular in T cells, technical limitations have prevented this knowledge from reaching clinical use. Simultaneous detection of cytosine modifications (including 5mC and 5hmC) has been made recently available by the next generation of Nanopore long-read sequencers, that are able to provide such information in the native DNA context. Here, we take advantage of Nanopore sequencing for simultaneously profiling 5mC and 5hmC in native DNA on naive murine T cells polarized under Th1, Th2, Th17, Th1/17 and Treg conditions.
-
-Our work is a first step towards the implementation of 5mC/5hmC in clinical immune profiling and identification of pathogenic immune cell subtypes. 
-
+Both identity and plasticity of CD4 T helper Th cells are regulated in part by epigenetic mechanisms2,4 However, a method that reliably and readily profiles DNA base modifications is still needed to finely study Th cell differentiation. Cytosine methylation (5mC) and, as well as cytosine hydroxymethylation (5hmC) are  DNA modifications that identify stable cell phenotypes but their potential to  characterize intermediate cell transitions has not yet been evaluated. To assess transition states in Th cells, we developed a new method to profile Th cell identity using cas9-targeted single molecule nanopore sequencing and find that 5mC and 5hmC can be used as markers of cellular identity. Targeting as few as 10 selected genomic loci, we were able to distinguish major differentiated T cell subtypes as well as intermediate phenotypes by their native DNA 5mC/5hmC patterns. Moreover, by using off-target sequences we were able to infer transcription factor activities relevant to each cell subtype. Our analysis demonstrates the importance of epigenetic regulation by 5mC and 5mhC modifications in the establishment of Th cell identity. Furthermore, our data highlight the potential to exploit this immune profiling application to elucidate the pathogenic role of Th transition states in autoimmune diseases.
 
 # Methods
 
@@ -40,5 +31,11 @@ Off-targets were analysed for transcription factor (TF) activity using the cistr
 
 ...
 
+
+# GitHub Contributors
+
+Chloe Goldsmith.
+Ali Hani Abid.
+Hector Hernandez-Vargas.
 
 ---

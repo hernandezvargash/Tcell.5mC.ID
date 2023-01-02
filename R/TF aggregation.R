@@ -1,5 +1,4 @@
 
-
 # main --------------------------------------------------------------------
 
 # TF aggregation
@@ -11,9 +10,7 @@
 
 # cistromes from: https://bmcresnotes.biomedcentral.com/articles/10.1186/s13104-018-3856-x
 # https://doi.org/10.6084/m9.figshare.7087697
-# cistromes also used in this paper about pioneer TFs: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8184831/ , from that reference:
-# Protective Pioneer Factors (PPFs): CTCF, REST, KLF4, KLF7, SOX2, SOX9, N-MYC, NRF1, OTX2, E2F1
-# Super Pioneer Factors (SPFs): CTCF, REST, KLF4, SOX2, SOX9, SOX17, CREB, FOXA1, FOXD3, E2F1, N-MYC, GR
+# cistromes also used in this paper about pioneer TFs: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8184831/
 
 
 # libraries ---------------------------------------------------------------
@@ -491,12 +488,5 @@ pheatmap::pheatmap(heatmap.data,
                    cellheight = 20)
 
 
-
-
-
 # end ---------------------------------------------------------------------
 sessionInfo()
-
-
-
-

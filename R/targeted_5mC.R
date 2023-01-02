@@ -1,5 +1,4 @@
 
-
 # main --------------------------------------------------------------------
 
 # in vitro differentiation experiments:
@@ -14,7 +13,7 @@
 
 # 
 
-# Treg experiments (not using CAR157 nightmare run this time):
+# Treg experiments:
 
 # 20201215: CAR157, RB8=ID29 (Treg), RB9=ID32 (DMK), RB10=ID40 (tTreg)
 # 20201210: CAR158, RB5=ID43 (Treg), RB6=ID46 (DMK), RB7=ID49 (tTreg)
@@ -22,14 +21,6 @@
 # Crispr targeted LIGATION sequencing SQK-LSK109
 # EXP-NBD104
 
-#
-
-# Th17-specific experiments:
-
-# 20210402: Th17 uncalled KO mice
-# 20210419: Th17 uncalled WT mice
-
-# 20210324: Crispr targeted LIGATION sequencing SQK-LSK109, EXP-NBD104, RB11: Th17nTGFB RB12: Th17nTGFB 
 
 #
 
@@ -181,7 +172,6 @@ densityBeanPlot(block.sizes.df,
 
 
 
-
 # prepare BSseq object ----------------------------------------------------
 
 load("manuscript/bed.list.5mC.RData")
@@ -236,7 +226,7 @@ autoplot(pca_res, data = pdata, colour = 'group', size = 4) +
 #  scale_color_manual(values = group.colors) +
   ggtitle("PCA integrated data")
 
-# one of the Treg samples cluster far appart from its replicate
+# one of the Treg samples clusters far apart from its replicate
 
 sel.pdata <- pdata[-16, ]
 sel.t.counts <- t.counts[-16, ]
@@ -247,7 +237,6 @@ autoplot(pca_res2, data = sel.pdata, colour = 'group', size = 4) +
   theme_minimal() +
   #  scale_color_manual(values = group.colors) +
   ggtitle("PCA integrated data")
-
 
 
 

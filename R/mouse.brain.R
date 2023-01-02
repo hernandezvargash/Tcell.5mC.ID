@@ -281,16 +281,3 @@ draw(ht_list4, ht_gap = unit(c(10,10), "mm"))
 
 sessionInfo()
 
-
-
-
-
-
-
-
-
-
-
-
-
-

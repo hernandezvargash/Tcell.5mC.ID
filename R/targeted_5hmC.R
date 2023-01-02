@@ -1,6 +1,6 @@
 
-
 # main --------------------------------------------------------------------
+
 
 # in vitro differentiation experiments:
 
@@ -14,7 +14,7 @@
 
 # 
 
-# Treg experiments (not using CAR157 nightmare run this time):
+# Treg experiments:
 
 # 20201215: CAR157, RB8=ID29 (Treg), RB9=ID32 (DMK), RB10=ID40 (tTreg)
 # 20201210: CAR158, RB5=ID43 (Treg), RB6=ID46 (DMK), RB7=ID49 (tTreg)
@@ -22,14 +22,6 @@
 # Crispr targeted LIGATION sequencing SQK-LSK109
 # EXP-NBD104
 
-#
-
-# Th17-specific experiments:
-
-# 20210402: Th17 uncalled KO mice
-# 20210419: Th17 uncalled WT mice
-
-# 20210324: Crispr targeted LIGATION sequencing SQK-LSK109, EXP-NBD104, RB11: Th17nTGFB RB12: Th17nTGFB 
 
 #
 
@@ -39,7 +31,6 @@
 
 
 # Targeted loci: Foxp3, Il17a, Rorc, Ifng, Il10, Maf, Il4, Gata3, Zfp362, Tbx21, Itgb8
-
 
 
 # libraries ---------------------------------------------------------------
@@ -208,8 +199,6 @@ autoplot(pca_res, data = pdata, colour = 'group', size = 4) +
 
 
 
-
-
 # DMRplots ----------------------------------------------------------------
 
 rm(list=ls())
@@ -262,7 +251,6 @@ for(i in 1:nrow(regions)){
 
 
 save(BSobj, file= "manuscript/BSobj_5hmCpG.RData")
-
 
 
 
@@ -385,7 +373,6 @@ write.csv(dmrs, file = "manuscript/tables/DMRs_5hmC_Th17.no.Tgfb.vs.Th0.csv")
 
 
 
-
 # Targeted DMRplots ----------------------------------------------------------------
 
 rm(list=ls())
@@ -483,7 +470,5 @@ pheatmap::pheatmap(heatmap.data,
 
 
 
-
 # end ---------------------------------------------------------------------
 sessionInfo()
-

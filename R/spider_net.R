@@ -72,6 +72,7 @@ plot.data <- rbind(max_min, as.numeric(data[11, ]))
 radarchart(plot.data, pfcol = group.colors[4], axistype = 3, vlcex = 2, title = "Th17/Th1", cex.main = 2)
 
 
+# grouped spidernet plots
 
 par(mfrow=c(1,2))
 
@@ -94,9 +95,3 @@ radarchart(plot.data, pcol = group.colors[c(2,3,4)], axistype = 3,
 # end ---------------------------------------------------------------------
 
 sessionInfo()
-
-
-
-
-
-

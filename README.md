@@ -1,5 +1,7 @@
 # Tcell.5mC.ID
 
+# <img src="figures/DALLE2.png" align="center" width="50" />
+
 ## Targeted Epigenetic T cell Subtyping Using Long Reads
 
 Code required to reproduce the analyses published in Goldsmith et al. BiorXiv 2023, *"Single molecule DNA methylation and hydroxymethylation reveal unique epigenetic identity profiles of T helper cells"*, by Chloe Goldsmith, Olivier Fesneau, Valentin Thevin, Maria I. Matias, Julie Perrault, Ali Hani Abid, Naomi Taylor, Valérie Dardalhon, Julien C. Marie, and Hector Hernandez-Vargas.
@@ -34,8 +36,8 @@ Off-targets were analysed for transcription factor (TF) activity using the cistr
 
 # GitHub Contributors
 
-Chloe Goldsmith.
-Ali Hani Abid.
-Hector Hernandez-Vargas.
+- Chloe Goldsmith.
+- Ali Hani Abid.
+- Hector Hernandez-Vargas.
 
 ---

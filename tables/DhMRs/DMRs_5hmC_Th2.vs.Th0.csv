@@ -1,0 +1,3 @@
+"","chr","start","end","length","nCG","meanMethy1","meanMethy2","diff.Methy","areaStat","name","annotation","description","region","distance","subregion","insideDistance","exonnumber","nexons","UTR","strand","geneL","codingL","Geneid","subjectHits"
+"3","chr11",53612566,53612722,157,10,0.159442222985097,0.0244638086322078,0.134978414352889,19.7370733340235,"Il4","NM_021283 NP_067258 NR_027491","inside intron","inside",4658,"inside intron",1337,2,4,"inside transcription region","-",14242,NA,"16189",20500
+"4","chr11",53614728,53614909,182,4,0.158531535625138,0.0134790729194619,0.145052462705677,9.0301447551766,"Il4","NM_021283 NP_067258 NR_027491","inside intron","inside",2496,"inside intron",-671,2,4,"inside transcription region","-",14242,NA,"16189",20500

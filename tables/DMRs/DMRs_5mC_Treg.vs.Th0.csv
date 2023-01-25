@@ -1,0 +1,3 @@
+"","chr","start","end","length","nCG","meanMethy1","meanMethy2","diff.Methy","areaStat","name","annotation","description","region","distance","subregion","insideDistance","exonnumber","nexons","UTR","strand","geneL","codingL","Geneid","subjectHits"
+"57","chrX",7566501,7566647,147,10,0.0565960933336993,0.434848697852604,-0.378252604518905,-20.1015837462597,"Ppp1r3f","NM_001290574 NM_138605 NP_001277503 NP_613071","promoter","promoter",2213,NA,NA,NA,3,NA,"-",2058,NA,"54646",67916
+"54","chrX",7565341,7565503,163,3,0.191586777256121,0.693562395193857,-0.501975617937736,-7.84474240567966,"Ppp1r3f","NM_001290574 NM_138605 NP_001277503 NP_613071","promoter","promoter",1053,NA,NA,NA,3,NA,"-",2058,NA,"54646",67916

@@ -118,11 +118,12 @@ hist(bed.list[[1]]$blockSizes)
 
 pre.DT <- lapply(bed.list, function(x) as.data.frame(x))
 head(pre.DT[[1]])
-table(pre.DT[[1]]$coverage > 0)
 
 pre.DT <- lapply(pre.DT, function(x) x[,c("seqnames","start","blockSizes","blockCount")])
 pre.DT <- lapply(pre.DT, function(x) {colnames(x)<-c("chr", "start", "methylProp", "coverage");x})
 pre.DT <- lapply(pre.DT, function(x)  transform(x, methylProp = methylProp/100))
+
+table(pre.DT[[1]]$coverage > 0)
 
 BSDTList <- lapply(pre.DT, data.table)
 
@@ -136,6 +137,7 @@ BSDTList <- lapply(pre.DT, data.table)
 
 bigBin <- lapply(X=BSDTList, FUN=aggregateMethyl, GRList=expanded.regions, binNum=21, minBaseCovPerBin = 0)
 bigBin <- lapply(bigBin, function(x) transform(x, featureID = "GATA3") )
+head(bigBin[[1]])
 
 bigBinDT <- rbindNamedList(bigBin)
 setkey(bigBinDT, sampleName)

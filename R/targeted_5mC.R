@@ -1,6 +1,8 @@
 
 # main --------------------------------------------------------------------
 
+# updated with dorado basecaller
+
 # in vitro differentiation experiments:
 
 # 20210113: second set of samples, replicates from the AK28 set
@@ -78,27 +80,28 @@ set.seed(123)
 
 # prepare phenotype data -----------------------------------------------------------
 
-bed.files <- list.files(path = "./remora/", pattern = "5mC.bed", recursive = T, full.names = F)
+bed.files <- list.files(path = "./remora/", pattern = "5hmC.bed", recursive = T, full.names = F)
 # remove files not used in manuscript: uncalled Th17, DMK, and tTreg
-bed.files <- bed.files[-c(1,3,4,6,21,22)]
+#bed.files <- bed.files[-c(1,3,4,6,21,22)]
 
 pdata <- as.data.frame(str_split(bed.files, "/", simplify = T))
 colnames(pdata) <- c("run","group","basename")
 pdata$bed.file <- bed.files
 
 rownames(pdata) <- paste0(pdata$group, "_", pdata$run)
-pdata$group[15] <- "Th17_noTgfb"
-pdata$group[16] <- "Th17_noTgfb"
+pdata$group[19] <- "Th17_noTgfb"
+pdata$group[20] <- "Th17_noTgfb"
 
 head(pdata)
 
-write.csv(pdata, file = "manuscript/pdata.5mC.csv")
+#write.csv(pdata, file = "manuscript/pdata.5mC.csv")
+write.csv(pdata, file = "manuscript/pdata.5mC.full.csv")
 
 
 # load bed files ----------------------------------------------------------
 
-bed.files.full <- list.files(path = "./remora/", pattern = "5mC.bed", recursive = T, full.names = T)
-bed.files.full <- bed.files.full[-c(1,3,4,6,21,22)]
+bed.files.full <- list.files(path = "./remora/", pattern = "5hmC.bed", recursive = T, full.names = T)
+#bed.files.full <- bed.files.full[-c(1,3,4,6,21,22)]
 
 # select targeted chromosomal locations to import
 
@@ -121,14 +124,15 @@ for(i in 1:length(bed.files)){
 }
 
 names(bed.list) <- rownames(pdata)
-save(bed.list, file="manuscript/bed.list.5mC.RData")
+#save(bed.list, file="manuscript/bed.list.5mC.RData")
+save(bed.list, file="manuscript/bed.list.5mC.full.RData")
 
 
 
 # inspection --------------------------------------------------------------
 
-load("manuscript/bed.list.5mC.RData")
-pdata <- read.csv("manuscript/pdata.5mC.csv", row.names = 1)
+load("manuscript/bed.list.5mC.full.RData")
+pdata <- read.csv("manuscript/pdata.5mC.full.csv", row.names = 1)
 
 par(mar = c(15,10,8,10), mfrow = c(2,1))
 barplot(as.numeric(lapply(bed.list, length)), las = 2,
@@ -174,8 +178,8 @@ densityBeanPlot(block.sizes.df,
 
 # prepare BSseq object ----------------------------------------------------
 
-load("manuscript/bed.list.5mC.RData")
-pdata <- read.csv("manuscript/pdata.5mC.csv", row.names = 1)
+load("manuscript/bed.list.5mC.full.RData")
+pdata <- read.csv("manuscript/pdata.5mC.full.csv", row.names = 1)
 
 lapply(bed.list, length)
 
@@ -184,7 +188,7 @@ all(rownames(pdata)==names(bed.list))
 pdata <- pdata[order(pdata$group), ]
 bed.list <- bed.list[rownames(pdata)]
 
-length(bed.list) # 16
+length(bed.list) # 23
 pre.BSseq <- lapply(bed.list, function(x) as.data.frame(x))
 head(pre.BSseq[[1]])
 pre.BSseq <- lapply(pre.BSseq, function(x) x[,c("seqnames","start","blockCount","blockSizes")])
@@ -199,7 +203,7 @@ BSobj <- makeBSseqData(pre.BSseq, sampleNames = rownames(pdata))
 sampleNames(BSobj)
 pData(BSobj) <- pdata
 
-save(BSobj, file= "manuscript/BSobj_5mCpG.RData")
+save(BSobj, file= "manuscript/BSobj_5mCpG.full.RData")
 
 
 
@@ -254,7 +258,7 @@ suppressPackageStartupMessages({
 
 annoTrack <- getAnnot("mm10")
 
-load("manuscript/BSobj_5mCpG.RData")
+load("manuscript/BSobj_5mCpG.full.RData")
 
 regions <- read.csv("targeted.regions.csv", row.names = 1)
 head(regions)
@@ -349,28 +353,41 @@ write.csv(heatmap.data, file = "5mC.heatmap.data.csv")
 
 # differential methylation (5mC) --------------------------------------------------------
 
-load("manuscript/BSobj_5mCpG.RData")
+load("manuscript/BSobj_5mCpG.full.RData")
 
 pheno <- as.data.frame(pData(BSobj))
 pheno$group
 
 # Treg vs Th0
-dml.test <- DMLtest(BSobj, group1 = c(15,16), group2 = c(1:3), ncores = 12) # 
+dml.test <- DMLtest(BSobj, group1 = c(20,21), group2 = c(4:6), ncores = 4) # 
 # Th1 vs Th0
-dml.test <- DMLtest(BSobj, group1 = c(4:6), group2 = c(1:3),  ncores = 12) # 
+dml.test <- DMLtest(BSobj, group1 = c(7:9), group2 = c(4:6),  ncores = 4) # 
+
+
 # Th2 vs Th0
 dml.test <- DMLtest(BSobj, group1 = c(12:14), group2 = c(1:3),  ncores = 12) # 
+
 # Th17 vs Th0
-dml.test <- DMLtest(BSobj, group1 = c(7:9), group2 = c(1:3),  ncores = 12) # 
+dml.test <- DMLtest(BSobj, group1 = c(10:12), group2 = c(4:6),  ncores = 4) # 
+
 # Th17.no.TGFb vs Th17
 dml.test <- DMLtest(BSobj, group1 = c(10:11), group2 = c(7:9),  ncores = 12) # 
+
 # Th17.no.Tgfb vs Th0
 dml.test <- DMLtest(BSobj, group1 = c(10:11), group2 = c(1:3),  ncores = 12) # 
+
+# Th17.KO vs Th17.WT
+dml.test <- DMLtest(BSobj, group1 = 15, 
+                    group2 = 16,  
+                    equal.disp = T,
+                    smoothing = T,
+                    ncores = 4) # 
+
 
 dmls = callDML(dml.test, p.threshold=0.05, delta = 0.1)
 head(dmls)
 
-dmrs = callDMR(dml.test, p.threshold=0.05, delta = 0.1)
+dmrs = callDMR(dml.test, p.threshold=0.05, delta = 0)
 # dmrs = callDMR(dml.test, p.threshold=0.05, delta = 0, minCG = 2) # criteria for Treg vs Th0
 head(dmrs)
 

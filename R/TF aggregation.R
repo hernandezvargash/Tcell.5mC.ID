@@ -54,259 +54,140 @@ suppressPackageStartupMessages({
 # The bed-files within mm10_cismotifs contain an additional column which lists the maximal HOCOMOCO motif score reachable for a particular cistrome segment 
 # (-log10 scale, the filtering was performed using the score of 4 which corresponds to the motif P-value of 0.0001).
 
-regions <- import.bed("cistrome_mm10/mm10_cistrome/GATA3_MOUSE.A.bed")
-regions <- import.bed("cistrome_mm10/mm10_cistrome/TBX21_MOUSE.A.bed")
-regions <- import.bed("cistrome_mm10/mm10_cistrome/FOXP3_MOUSE.A.bed")
-regions <- import.bed("cistrome_mm10/mm10_cistrome/STAT3_MOUSE.A.bed")
-regions <- import.bed("cistrome_mm10/mm10_cistrome/BCL6_MOUSE.A.bed")
-regions <- import.bed("cistrome_mm10/mm10_cistrome/RUNX3_MOUSE.A.bed")
-regions <- import.bed("cistrome_mm10/mm10_cistrome/STAT1_MOUSE.A.bed")
-regions <- import.bed("cistrome_mm10/mm10_cistrome/KLF6_MOUSE.C.bed")
-regions
-mean(width(regions))
-expanded.regions <- resize(regions, 2000, fix="center")
-mean(width(expanded.regions))
-
-
-# prepare phenotype data -----------------------------------------------------------
-
-bed.files <- list.files(path = "./remora/", pattern = "5mC.bed", recursive = T, full.names = F)
-bed.files <- bed.files[1:18] # omitting uncalled experiment
-
-pdata <- as.data.frame(str_split(bed.files, "/", simplify = T))
-colnames(pdata) <- c("run","group","basename")
-pdata$bed.file <- bed.files
-pdata$origin <- c(rep("in_vitro", 2), "ex_vivo", rep("in_vitro", 2), "ex_vivo", rep("in_vitro", 12))
-pdata$protocol <- c(rep("Cas9", 18))
-rownames(pdata) <- paste0(pdata$group, "_", pdata$run)
-
-head(pdata)
-colnames(pdata)[2] <- "sampleType"
-table(pdata$sampleType)
-
-
-# load bed files ----------------------------------------------------------
-
-bed.files.full <- list.files(path = "./remora/", pattern = "5mC.bed", recursive = T, full.names = T)
-
-
-# import to a list
-
-bed.list <- list()
-
-for(i in 1:18){ # omitting uncalled experiment
-  bed.list[[i]] <- import.bed(bed.files.full[i], which = expanded.regions)
-  bed.list[[i]] <- keepStandardChromosomes(bed.list[[i]], pruning.mode = "coarse")
-  bed.list[[i]] <- sort(bed.list[[i]])
-#  bed.list[[i]] <- resize(bed.list[[i]], width = 3, fix = "start")
-#  bed.list[[i]]$context <- getSeq(genome, bed.list[[i]])
-  bed.list[[i]]$blockSizes <- as.numeric(as.character(bed.list[[i]]$blockSizes))
-}
-
-names(bed.list) <- rownames(pdata)
-
-lapply(bed.list, length)
-
-#save(bed.list, file="bed.list.5mC.integrated.RData")
-
-head(bed.list[[1]])
-hist(bed.list[[1]]$blockCount)
-hist(bed.list[[1]]$blockSizes)
-
-
-# prepare data tables
-
-pre.DT <- lapply(bed.list, function(x) as.data.frame(x))
-head(pre.DT[[1]])
-
-pre.DT <- lapply(pre.DT, function(x) x[,c("seqnames","start","blockSizes","blockCount")])
-pre.DT <- lapply(pre.DT, function(x) {colnames(x)<-c("chr", "start", "methylProp", "coverage");x})
-pre.DT <- lapply(pre.DT, function(x)  transform(x, methylProp = methylProp/100))
-
-table(pre.DT[[1]]$coverage > 0)
-
-BSDTList <- lapply(pre.DT, data.table)
-
-# save(BSDTList, file = "BSDTList.RData")
-
-
-
-# aggregate methylation data ----------------------------------------------------------
-
-# load("BSDTList.RData")
-
-bigBin <- lapply(X=BSDTList, FUN=aggregateMethyl, GRList=expanded.regions, binNum=21, minBaseCovPerBin = 0)
-bigBin <- lapply(bigBin, function(x) transform(x, featureID = "GATA3") )
-head(bigBin[[1]])
-
-bigBinDT <- rbindNamedList(bigBin)
-setkey(bigBinDT, sampleName)
-
-annotDT <- data.table(sampleName = names(BSDTList), pdata)
-setkey(annotDT, sampleName)
-
-bigBinDT2 <- merge(bigBinDT, annotDT, all.x=TRUE)
-
-plotMIRAProfiles(binnedRegDT=bigBinDT2, plotType = "jitter", colBlindOption = T)
-#plotMIRAProfiles(binnedRegDT=bigBinDT2)
-#bigBinDT2[, methylProp := methylProp - min(methylProp) + .05, by=.(featureID, sampleName)]
-sampleScores <- calcMIRAScore(bigBinDT2,
-                              shoulderShift="auto",
-                              regionSetIDColName="featureID",
-                              sampleIDColName="sampleName")
-sampleScores
-sampleScores$sampleType <- annotDT$sampleType
-plotMIRAScores(sampleScores, colBlindOption = T)
-
-
-
-# stats -------------------------------------------------------------------
-
-
-score.1 <- sampleScores[sampleScores$sampleType == "Th0", ]
-score.2 <- sampleScores[sampleScores$sampleType == "Th1", ]
-
-wilcox.test(score.1$score, score.2$score)
-t.test(score.1$score, score.2$score)
-
 
 
 # loop 5mC --------------------------------------------------------------------
 
 rm(list = ls())
 
-# phenotype data
+bed.list <- readRDS(file="manuscript/bedlist.m.rds")
 
-bed.files.full <- list.files(path = "./remora/", pattern = "5mC.bed", recursive = T, full.names = T)
-bed.files.full <- bed.files.full[1:20] # omitting uncalled experiment
-bed.files.full <- bed.files.full[-c(1,3,4,6)] # omitting DMK experiment
-bed.files <- list.files(path = "./remora/", pattern = "5mC.bed", recursive = T, full.names = F)
-bed.files <- bed.files[1:20] # omitting uncalled experiment
-bed.files <- bed.files[-c(1,3,4,6)] # omitting DMK experiment
+pdata <- read.csv(file = "manuscript/pdata.csv", row.names = 1)
 
-pdata <- as.data.frame(str_split(bed.files, "/", simplify = T))
-colnames(pdata) <- c("run","group","basename")
-pdata$bed.file <- bed.files
-#pdata$origin <- c(rep("in_vitro", 2), "ex_vivo", rep("in_vitro", 2), "ex_vivo", rep("in_vitro", 12))
-#pdata$protocol <- c(rep("Cas9", 18))
-rownames(pdata) <- paste0(pdata$group, "_", pdata$run)
-colnames(pdata)[2] <- "sampleType"
-pdata$sampleType[15] <- "Th17_noTgfb"
-pdata$sampleType[16] <- "Th17_noTgfb"
-head(pdata)
 
 
 # TF data
 
-TFs.of.interest <- c("GATA3","TBX21","FOXP3","STAT3","BCL6","RUNX3","STAT1")
+#TFs.of.interest <- c("GATA3","TBX21","FOXP3","STAT3","BCL6","RUNX3","STAT1")
 
 # list all available mm10 TFs
-all.TFs <- list.files("cistrome_mm10/mm10_cistrome/")
+all.TFs <- list.files("cistrome_mm10/mm10_cistrome/", full.names = T)
 # select motifs with highest confidence
 all.TFs <- all.TFs[grep("MOUSE.A", all.TFs)]
-all.TFs <- str_sub(all.TFs, 1, -13)
+
+nrows <- sapply(all.TFs, function(f) nrow(read.csv(f)) )
+#for high-confidence analyses use >10k sites and >100 coverage
+#all.TFs <- all.TFs[nrows > 10000]
+all.TFs <- all.TFs[nrows > 500]
+
+sort(all.TFs)
+all.TFs <- str_sub(all.TFs, 30, -13)
 
 # check for available TFs of interest
-sel.TFs <- intersect(TFs.of.interest, all.TFs)
+#sel.TFs <- intersect(TFs.of.interest, all.TFs)
 
-group.colors <- alphabet(20)
+sel.TFs <- all.TFs
+
+group.colors <- pals::alphabet(n=20)
 group.colors <- group.colors[c(5,18,15,19,3,7)]
-names(group.colors) <- levels(factor(pdata$sampleType))
+names(group.colors) <- levels(factor(pdata$group))
 
-#t=2
+#t=41
 #i=1
 for(t in 1:length(sel.TFs)){
   
   regions <- import.bed(paste0("cistrome_mm10/mm10_cistrome/", sel.TFs[t], "_MOUSE.A.bed"))
   expanded.regions <- resize(regions, 2000, fix="center")
   
-  bed.list <- list()
+  bed.list.temp <- lapply(bed.list, function(x) subsetByOverlaps(x, expanded.regions))
+  #lapply(bed.list.temp, length)
   
-  for(i in 1:nrow(pdata)){ # omitting uncalled experiment
-    bed.list[[i]] <- import.bed(bed.files.full[i], which = expanded.regions)
-    bed.list[[i]] <- keepStandardChromosomes(bed.list[[i]], pruning.mode = "coarse")
-    bed.list[[i]] <- sort(bed.list[[i]])
-    bed.list[[i]]$blockSizes <- as.numeric(as.character(bed.list[[i]]$blockSizes))
-
-  }
-  
-  names(bed.list) <- rownames(pdata)
-  
-  pre.DT <- lapply(bed.list, function(x) as.data.frame(x))
-  pre.DT <- lapply(pre.DT, function(x) x[,c("seqnames","start","blockSizes","blockCount")])
+  pre.DT <- lapply(bed.list.temp, function(x) as.data.frame(x))
+  pre.DT <- lapply(pre.DT, function(x) x[,c("seqnames","start","freq","coverage")])
   pre.DT <- lapply(pre.DT, function(x) {colnames(x)<-c("chr", "start", "methylProp", "coverage");x})
   pre.DT <- lapply(pre.DT, function(x)  transform(x, methylProp = methylProp/100))
 
   BSDTList <- lapply(pre.DT, data.table)
   
-  bigBin <- lapply(X=BSDTList, FUN=aggregateMethyl, GRList=expanded.regions, binNum=21, minBaseCovPerBin = 1)
+  bigBin <- lapply(X=BSDTList, FUN=aggregateMethyl, GRList=expanded.regions, binNum=21, minBaseCovPerBin = 1) # used 100 coverage for high-confidence analysis
   bigBin <- lapply(bigBin, function(x) transform(x, featureID = sel.TFs[t]) )
-  bigBinDT <- rbindNamedList(bigBin)
-  setkey(bigBinDT, sampleName)
-  annotDT <- data.table(sampleName = names(BSDTList), pdata)
-  setkey(annotDT, sampleName)
   
-  bigBinDT2 <- merge(bigBinDT, annotDT, all.x=TRUE)
+  if(all(lapply(bigBin, length)>1) == TRUE){
+    
+    bigBinDT <- rbindNamedList(bigBin)
+    setkey(bigBinDT, sampleName)
+    annotDT <- data.table(sampleName = names(BSDTList), pdata)
+    setkey(annotDT, sampleName)
+    
+    bigBinDT2 <- merge(bigBinDT, annotDT, all.x=TRUE)
+    
+    # normalize
+    bigBinDT2[, methylProp := methylProp - min(methylProp) + .05, by=.(featureID, sampleName)]
+    
+    # prepare plots
+    
+    binnedRegDT = bigBinDT2
+    featID = unique(binnedRegDT[, featureID])
+    sampleTypeColName="group"
+    binNum <- max(binnedRegDT[, bin])
+    setkey(binnedRegDT, featureID)
+    binPlot <- ggplot(data = binnedRegDT[featID], 
+                      mapping = aes(x = factor(bin), 
+                                    y = methylProp * 100,
+                                    col = group)) +
+      theme_classic() + ylim(c(0, 100)) +
+      geom_hline(yintercept=c(0), alpha=.2) +
+      ylab("Normalized DNA Methylation (5mCpG %)") + 
+      xlab("Genome Regions Surrounding Sites") +
+      #  scale_x_discrete(labels=xAxisForRegionPlots(binNum)) +
+      geom_jitter(alpha = .8, size = 3) + 
+      scale_color_manual(values= group.colors) +
+      ggtitle(paste0(featID, " [5mCpG]")) +
+      theme(
+        plot.title = element_text(color="black", size=24, face="bold", hjust = 0.5),
+        axis.title.x = element_text(color="black", size=14, face="bold"),
+        axis.title.y = element_text(color="black", size=14, face="bold")
+      ) +
+      theme(legend.position="bottom", legend.text = element_text(size=16))
 
-  # prepare plots
+    sampleScores <- calcMIRAScore(bigBinDT2,
+                                  shoulderShift="auto",
+                                  regionSetIDColName="featureID",
+                                  sampleIDColName="sampleName")
+    sampleScores
+    sampleScores$group <- annotDT$group
+    
+    scoreDT <- sampleScores
+    sampleTypeNum <- length(unique(scoreDT[, group]))
+    setkey(scoreDT, featureID)
+    scorePlot <- ggplot(data = scoreDT[featID], 
+                        mapping = aes(x = group, 
+                                      y = score)) + 
+      theme_classic() +
+      ylab("MIRA Score") + xlab("Sample Type") +
+      geom_boxplot(aes(fill = group), alpha = 0.8) + 
+      geom_jitter(data = scoreDT[featID], mapping = aes(x = group, y = score)) + 
+      scale_fill_manual(values= group.colors) +
+      ggtitle("") +
+      theme(
+        plot.title = element_text(color="black", size=24, face="bold", hjust = 0.5),
+        axis.title.x = element_text(color="black", size=14, face="bold"),
+        axis.title.y = element_text(color="black", size=14, face="bold")
+      ) +
+      theme(legend.position="bottom", legend.text = element_text(size=16)) +
+      stat_compare_means(method = "anova", label.y = min(sampleScores$score) - 0.02, size = 7) + # Add global p-value
+      stat_compare_means(aes(label = sprintf("p = %5.2f", as.numeric(..p.format..))), ref.group = "Th0", method = "t.test", size = 5)
+    
+    
+    tiff(filename = paste0("manuscript/cistromes/5mC/MIRA_5mCpG_Profiles_and_Scores_", sel.TFs[t], ".tiff"), height = 500, width = 1000)
+    p1 <- grid.arrange(binPlot, scorePlot, ncol = 2)
+    plot(p1)
+    dev.off()
+    
+    write.csv(sampleScores, file = paste0("manuscript/cistromes/5mC/MIRA_5mCpG_Scores_", sel.TFs[t], ".csv") )
+    
+  }
   
-  binnedRegDT = bigBinDT2
-  featID = unique(binnedRegDT[, featureID])
-  sampleTypeColName="sampleType"
-  binNum <- max(binnedRegDT[, bin])
-  setkey(binnedRegDT, featureID)
-  binPlot <- ggplot(data = binnedRegDT[featID], 
-                    mapping = aes(x = factor(bin), 
-                                  y = methylProp * 100,
-                                  col = sampleType)) +
-    theme_classic() + ylim(c(0, 100)) +
-    geom_hline(yintercept=c(0), alpha=.2) +
-    ylab("DNA Methylation (5mC %)") + 
-    xlab("Genome Regions Surrounding Sites") +
-    #  scale_x_discrete(labels=xAxisForRegionPlots(binNum)) +
-    geom_jitter(alpha = .8, size = 3) + 
-    scale_color_manual(values= group.colors) +
-    ggtitle(paste0(featID, " [5mC]")) +
-    theme(
-      plot.title = element_text(color="black", size=18, face="bold", hjust = 0.5),
-      axis.title.x = element_text(color="black", size=14, face="bold"),
-      axis.title.y = element_text(color="black", size=14, face="bold")
-    )
-  
-  sampleScores <- calcMIRAScore(bigBinDT2,
-                                shoulderShift="auto",
-                                regionSetIDColName="featureID",
-                                sampleIDColName="sampleName")
-  sampleScores
-  sampleScores$sampleType <- annotDT$sampleType
-  
-  scoreDT <- sampleScores
-  sampleTypeNum <- length(unique(scoreDT[, sampleType]))
-  setkey(scoreDT, featureID)
-  scorePlot <- ggplot(data = scoreDT[featID], 
-                      mapping = aes(x = sampleType, 
-                                    y = score)) + 
-    theme_classic() +
-    ylab("MIRA Score") + xlab("Sample Type") +
-    geom_boxplot(aes(fill = sampleType), alpha = 0.8) + 
-    geom_jitter(data = scoreDT[featID], mapping = aes(x = sampleType, y = score)) + 
-    scale_fill_manual(values= group.colors) +
-    ggtitle(paste0(featID, " [5mC]")) +
-    theme(
-      plot.title = element_text(color="black", size=18, face="bold", hjust = 0.5),
-      axis.title.x = element_text(color="black", size=14, face="bold"),
-      axis.title.y = element_text(color="black", size=14, face="bold")
-    ) +
-    stat_compare_means(ref.group = "Th0", label = "p.format")
-  
-  
-  jpeg(filename = paste0("MIRA_Profiles_and_Scores_", sel.TFs[t], ".jpeg"), height = 600, width = 1200, quality = 100)
-  p1 <- grid.arrange(binPlot, scorePlot, ncol = 2)
-  plot(p1)
-  dev.off()
-  
-  write.csv(sampleScores, file = paste0("MIRA_Scores_", sel.TFs[t], ".csv") )
-
   rm(regions, expanded.regions, bigBinDT2, sampleScores, p1)
     
 }
@@ -315,67 +196,51 @@ for(t in 1:length(sel.TFs)){
 
 # loop 5hmC --------------------------------------------------------------------
 
+
 rm(list = ls())
 
-# phenotype data
+bed.list <- readRDS(file="manuscript/bedlist.h.rds")
 
-bed.files.full <- list.files(path = "./remora/", pattern = "5hmC.bed", recursive = T, full.names = T)
-bed.files.full <- bed.files.full[1:20] # omitting uncalled experiment
-bed.files.full <- bed.files.full[-c(1,3,4,6)] # omitting DMK experiment
-bed.files <- list.files(path = "./remora/", pattern = "5hmC.bed", recursive = T, full.names = F)
-bed.files <- bed.files[1:20] # omitting uncalled experiment
-bed.files <- bed.files[-c(1,3,4,6)] # omitting DMK experiment
+pdata <- read.csv(file = "manuscript/pdata.csv", row.names = 1)
 
-pdata <- as.data.frame(str_split(bed.files, "/", simplify = T))
-colnames(pdata) <- c("run","group","basename")
-pdata$bed.file <- bed.files
-#pdata$origin <- c(rep("in_vitro", 2), "ex_vivo", rep("in_vitro", 2), "ex_vivo", rep("in_vitro", 12))
-#pdata$protocol <- c(rep("Cas9", 18))
-rownames(pdata) <- paste0(pdata$group, "_", pdata$run)
-colnames(pdata)[2] <- "sampleType"
-pdata$sampleType[15] <- "Th17_noTgfb"
-pdata$sampleType[16] <- "Th17_noTgfb"
-head(pdata)
 
 
 # TF data
 
-TFs.of.interest <- c("GATA3","TBX21","FOXP3","STAT3","BCL6","RUNX3","STAT1")
+#TFs.of.interest <- c("GATA3","TBX21","FOXP3","STAT3","BCL6","RUNX3","STAT1")
 
 # list all available mm10 TFs
-all.TFs <- list.files("cistrome_mm10/mm10_cistrome/")
+all.TFs <- list.files("cistrome_mm10/mm10_cistrome/", full.names = T)
 # select motifs with highest confidence
 all.TFs <- all.TFs[grep("MOUSE.A", all.TFs)]
-all.TFs <- str_sub(all.TFs, 1, -13)
+
+nrows <- sapply(all.TFs, function(f) nrow(read.csv(f)) )
+all.TFs <- all.TFs[nrows > 500]
+
+sort(all.TFs)
+all.TFs <- str_sub(all.TFs, 30, -13)
 
 # check for available TFs of interest
-sel.TFs <- intersect(TFs.of.interest, all.TFs)
+#sel.TFs <- intersect(TFs.of.interest, all.TFs)
 
-group.colors <- alphabet(20)
+sel.TFs <- all.TFs
+
+group.colors <- pals::alphabet(20)
 group.colors <- group.colors[c(5,18,15,19,3,7)]
-names(group.colors) <- levels(factor(pdata$sampleType))
+names(group.colors) <- levels(factor(pdata$group))
 
-#t=2
+#t=78
 #i=1
 for(t in 1:length(sel.TFs)){
   
   regions <- import.bed(paste0("cistrome_mm10/mm10_cistrome/", sel.TFs[t], "_MOUSE.A.bed"))
   expanded.regions <- resize(regions, 2000, fix="center")
   
-  bed.list <- list()
+  bed.list.temp <- lapply(bed.list, function(x) subsetByOverlaps(x, expanded.regions))
+  #lapply(bed.list.temp, length)
   
-  for(i in 1:nrow(pdata)){ # omitting uncalled experiment
-    bed.list[[i]] <- import.bed(bed.files.full[i], which = expanded.regions)
-    bed.list[[i]] <- keepStandardChromosomes(bed.list[[i]], pruning.mode = "coarse")
-    bed.list[[i]] <- sort(bed.list[[i]])
-    bed.list[[i]]$blockSizes <- as.numeric(as.character(bed.list[[i]]$blockSizes))
-    
-  }
-  
-  names(bed.list) <- rownames(pdata)
-  
-  pre.DT <- lapply(bed.list, function(x) as.data.frame(x))
-  pre.DT <- lapply(pre.DT, function(x) x[,c("seqnames","start","blockSizes","blockCount")])
+  pre.DT <- lapply(bed.list.temp, function(x) as.data.frame(x))
+  pre.DT <- lapply(pre.DT, function(x) x[,c("seqnames","start","freq","coverage")])
   pre.DT <- lapply(pre.DT, function(x) {colnames(x)<-c("chr", "start", "methylProp", "coverage");x})
   pre.DT <- lapply(pre.DT, function(x)  transform(x, methylProp = methylProp/100))
   
@@ -383,71 +248,80 @@ for(t in 1:length(sel.TFs)){
   
   bigBin <- lapply(X=BSDTList, FUN=aggregateMethyl, GRList=expanded.regions, binNum=21, minBaseCovPerBin = 1)
   bigBin <- lapply(bigBin, function(x) transform(x, featureID = sel.TFs[t]) )
-  bigBinDT <- rbindNamedList(bigBin)
-  setkey(bigBinDT, sampleName)
-  annotDT <- data.table(sampleName = names(BSDTList), pdata)
-  setkey(annotDT, sampleName)
   
-  bigBinDT2 <- merge(bigBinDT, annotDT, all.x=TRUE)
-  
-  # prepare plots
-  
-  binnedRegDT = bigBinDT2
-  featID = unique(binnedRegDT[, featureID])
-  sampleTypeColName="sampleType"
-  binNum <- max(binnedRegDT[, bin])
-  setkey(binnedRegDT, featureID)
-  binPlot <- ggplot(data = binnedRegDT[featID], 
-                    mapping = aes(x = factor(bin), 
-                                  y = methylProp * 100,
-                                  col = sampleType)) +
-    theme_classic() + ylim(c(0, 100)) +
-    geom_hline(yintercept=c(0), alpha=.2) +
-    ylab("DNA Methylation (5hmC %)") + 
-    xlab("Genome Regions Surrounding Sites") +
-    #  scale_x_discrete(labels=xAxisForRegionPlots(binNum)) +
-    geom_jitter(alpha = .8, size = 3) + 
-    scale_color_manual(values= group.colors) +
-    ggtitle(paste0(featID, " [5hmC]")) +
-    theme(
-      plot.title = element_text(color="black", size=18, face="bold", hjust = 0.5),
-      axis.title.x = element_text(color="black", size=14, face="bold"),
-      axis.title.y = element_text(color="black", size=14, face="bold")
-    )
-  
-  sampleScores <- calcMIRAScore(bigBinDT2,
-                                shoulderShift="auto",
-                                regionSetIDColName="featureID",
-                                sampleIDColName="sampleName")
-  sampleScores
-  sampleScores$sampleType <- annotDT$sampleType
-  
-  scoreDT <- sampleScores
-  sampleTypeNum <- length(unique(scoreDT[, sampleType]))
-  setkey(scoreDT, featureID)
-  scorePlot <- ggplot(data = scoreDT[featID], 
-                      mapping = aes(x = sampleType, 
-                                    y = score)) + 
-    theme_classic() +
-    ylab("MIRA Score") + xlab("Sample Type") +
-    geom_boxplot(aes(fill = sampleType), alpha = 0.8) + 
-    geom_jitter(data = scoreDT[featID], mapping = aes(x = sampleType, y = score)) + 
-    scale_fill_manual(values= group.colors) +
-    ggtitle(paste0(featID, " [5hmC]")) +
-    theme(
-      plot.title = element_text(color="black", size=18, face="bold", hjust = 0.5),
-      axis.title.x = element_text(color="black", size=14, face="bold"),
-      axis.title.y = element_text(color="black", size=14, face="bold")
-    ) +
-    stat_compare_means(ref.group = "Th0", label = "p.format")
-  
-  
-  jpeg(filename = paste0("MIRA_Profiles_and_Scores_5hmC_", sel.TFs[t], ".jpeg"), height = 600, width = 1200, quality = 100)
-  p1 <- grid.arrange(binPlot, scorePlot, ncol = 2)
-  plot(p1)
-  dev.off()
-  
-  write.csv(sampleScores, file = paste0("MIRA_Scores_5hmC", sel.TFs[t], ".csv") )
+  if(all(lapply(bigBin, length)>1) == TRUE){
+    
+    bigBinDT <- rbindNamedList(bigBin)
+    setkey(bigBinDT, sampleName)
+    annotDT <- data.table(sampleName = names(BSDTList), pdata)
+    setkey(annotDT, sampleName)
+    
+    bigBinDT2 <- merge(bigBinDT, annotDT, all.x=TRUE)
+    
+    # normalize
+    bigBinDT2[, methylProp := methylProp - min(methylProp) + .05, by=.(featureID, sampleName)]
+    
+    # prepare plots
+    
+    binnedRegDT = bigBinDT2
+    featID = unique(binnedRegDT[, featureID])
+    sampleTypeColName="group"
+    binNum <- max(binnedRegDT[, bin])
+    setkey(binnedRegDT, featureID)
+    binPlot <- ggplot(data = binnedRegDT[featID], 
+                      mapping = aes(x = factor(bin), 
+                                    y = methylProp * 100,
+                                    col = group)) +
+      theme_classic() + ylim(c(0, 100)) +
+      geom_hline(yintercept=c(0), alpha=.2) +
+      ylab("Normalized DNA Methylation (5hmCpG %)") + 
+      xlab("Genome Regions Surrounding Sites") +
+      #  scale_x_discrete(labels=xAxisForRegionPlots(binNum)) +
+      geom_jitter(alpha = .8, size = 3) + 
+      scale_color_manual(values= group.colors) +
+      ggtitle(paste0(featID, " [5hmCpG]")) +
+      theme(
+        plot.title = element_text(color="black", size=18, face="bold", hjust = 0.5),
+        axis.title.x = element_text(color="black", size=14, face="bold"),
+        axis.title.y = element_text(color="black", size=14, face="bold")
+      )
+    
+    sampleScores <- calcMIRAScore(bigBinDT2,
+                                  shoulderShift="auto",
+                                  regionSetIDColName="featureID",
+                                  sampleIDColName="sampleName")
+    sampleScores
+    sampleScores$group <- annotDT$group
+    
+    scoreDT <- sampleScores
+    sampleTypeNum <- length(unique(scoreDT[, group]))
+    setkey(scoreDT, featureID)
+    scorePlot <- ggplot(data = scoreDT[featID], 
+                        mapping = aes(x = group, 
+                                      y = score)) + 
+      theme_classic() +
+      ylab("MIRA Score") + xlab("Sample Type") +
+      geom_boxplot(aes(fill = group), alpha = 0.8) + 
+      geom_jitter(data = scoreDT[featID], mapping = aes(x = group, y = score)) + 
+      scale_fill_manual(values= group.colors) +
+      ggtitle(paste0(featID, " [5hmCpG]")) +
+      theme(
+        plot.title = element_text(color="black", size=18, face="bold", hjust = 0.5),
+        axis.title.x = element_text(color="black", size=14, face="bold"),
+        axis.title.y = element_text(color="black", size=14, face="bold")
+      ) +
+      stat_compare_means(method = "anova", label.y = 0.8)+ # Add global p-value
+      stat_compare_means(aes(label = sprintf("p = %5.2f", as.numeric(..p.format..))), ref.group = "Th0", method = "wilcox")
+    
+    
+    jpeg(filename = paste0("MIRA_5hmCpG_Profiles_and_Scores_", sel.TFs[t], ".jpeg"), height = 600, width = 1200, quality = 100)
+    p1 <- grid.arrange(binPlot, scorePlot, ncol = 2)
+    plot(p1)
+    dev.off()
+    
+    write.csv(sampleScores, file = paste0("MIRA_5hmCpG_Scores_", sel.TFs[t], ".csv") )
+    
+  }
   
   rm(regions, expanded.regions, bigBinDT2, sampleScores, p1)
   
@@ -488,6 +362,81 @@ pheatmap::pheatmap(heatmap.data,
                    fontsize = 12,
                    cellwidth = 25,
                    cellheight = 20)
+
+
+# 5hmC TF target mean methylation ----
+
+# as MIRA is not well adapted to induced-5hmC activity
+# this analyses simply takes TF binding sites and produces a global average
+# without infering any score
+
+rm(list = ls())
+
+bed.list <- readRDS(file="manuscript/bedlist.h.rds")
+
+pdata <- read.csv(file = "manuscript/pdata.csv", row.names = 1)
+
+
+# list all available mm10 TFs
+all.TFs <- list.files("cistrome_mm10/mm10_cistrome/", full.names = T) # 877 TFs
+
+# select motifs with highest confidence
+all.TFs <- all.TFs[grep("MOUSE.A", all.TFs)] # 181 TFs
+
+nrows <- sapply(all.TFs, function(f) nrow(read.csv(f)) )
+all.TFs <- all.TFs[nrows > 500] # 163 TFs
+
+sort(all.TFs)
+all.TFs <- str_sub(all.TFs, 30, -13) 
+
+sel.TFs <- all.TFs
+
+group.colors <- pals::alphabet(20)
+group.colors <- group.colors[c(5,18,15,19,3,7)]
+names(group.colors) <- levels(factor(pdata$group))
+
+#t=1
+for(t in 1:length(sel.TFs)){
+  
+  regions <- import.bed(paste0("cistrome_mm10/mm10_cistrome/", sel.TFs[t], "_MOUSE.A.bed"))
+  #summary(width(regions))
+  #expanded.regions <- resize(regions, 2000, fix="center") # not extending regions for 5hmC
+  expanded.regions <- regions
+  
+  bed.list.temp <- lapply(bed.list, function(x) subsetByOverlaps(x, expanded.regions))
+  #lapply(bed.list.temp, length)
+  tab1 <- as.data.frame(unlist(lapply(bed.list.temp, function(x) mean(x$freq))))
+  colnames(tab1) <- "mean.meth"
+  tab1$group <- pdata$group
+  
+  methPlot <- ggplot(data = tab1, 
+                      mapping = aes(x = group, 
+                                    y = mean.meth)) + 
+    theme_classic() +
+    ylab("Average methylation %") + xlab("") +
+    geom_boxplot(aes(fill = group), alpha = 0.8) + 
+    scale_fill_manual(values= group.colors) +
+    ggtitle(paste0(sel.TFs[t], " [5hmCpG]")) +
+    theme(
+      plot.title = element_text(color="black", size=24, face="bold", hjust = 0.5),
+      axis.title.x = element_text(color="black", size=14, face="bold"),
+      axis.title.y = element_text(color="black", size=14, face="bold")
+    ) +
+    theme(legend.position="bottom", legend.text = element_text(size=16)) +
+    stat_compare_means(method = "anova", label.y = 0.08, size = 7) + # Add global p-value
+    stat_compare_means(aes(label = sprintf("p = %5.2f", as.numeric(..p.format..))), ref.group = "Th0", method = "t.test", size = 5)
+  
+#  tiff(filename = paste0("manuscript/cistromes/5hmC/MIRA_5hmCpG_Mean.Methylation_", sel.TFs[t], ".tiff"), height = 500, width = 500)
+  jpeg(filename = paste0("manuscript/cistromes/5hmC/MIRA_5hmCpG_Mean.Methylation_", sel.TFs[t], ".jpeg"), height = 500, width = 500, quality = 100)
+  plot(methPlot)
+  dev.off()
+
+  rm(regions, expanded.regions, tab1, methPlot)
+  
+}
+
+
+
 
 
 # end ---------------------------------------------------------------------

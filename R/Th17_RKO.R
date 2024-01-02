@@ -773,6 +773,145 @@ plotDMRs(BSobj, regions=targets[sel.num,], testCovariate="group", addRegions = t
 
 
 
+# Targeted heatmap 5mCpG -----------------------------------------------------------------
+
+rm(list=ls())
+
+BSobj.m <- readRDS("manuscript/BSobj.m_uncalled.rds")
+#BSobj.h <- readRDS("manuscript/BSobj.h_uncalled.rds")
+
+hasBeenSmoothed(BSobj.m)
+
+regions <- read.csv("manuscript/tables/DMRs_5mC.uncalled_regions.139_Th17.KO.vs.WT.csv", row.names = 1)
+#regions <- read.csv("targeted.regions.csv", row.names = 1)
+head(regions)
+
+BSobj = BSobj.m
+#BSobj = BSobj.h
+
+# smoothing does not significantly change the clustering
+#smoothed.BSoj <- BSmooth(BSobj)
+#saveRDS(smoothed.BSoj, file= "manuscript/smoothed.BSobj.m.rds")
+#heatmap.data <- bsseq::getMeth(BSseq = smoothed.BSoj, regions = GRanges(regions), type = "smooth", what = "perRegion")
+
+heatmap.data <- bsseq::getMeth(BSseq = BSobj,
+                               regions = GRanges(regions),
+                               type = "raw",
+                               what = "perRegion")
+head(heatmap.data)
+rownames(heatmap.data) <- regions$name
+
+#heatmap.data %>%   na.omit() %>% as.matrix()
+
+pheno <- data.frame(group = sampleNames(BSobj))
+pheno$group <- as.factor(pheno$group)
+group.colors <- c("orange","lightblue")
+names(group.colors) <- levels(pheno$group)
+group.colors =  list(group = group.colors)
+
+library(pheatmap)
+pheatmap::pheatmap(heatmap.data,
+                   scale = "row",
+                   annotation_col = pheno,
+                   annotation_colors = group.colors,
+                   show_rownames = T, fontsize_row = 12,
+                   show_colnames = T,
+                   angle_col = 45,
+                   border_color = "grey",
+                   main = "Z-Scores of mean 5mC in all targeted regions",
+                   #                   main = "Z-Scores of mean 5hmC in all targeted regions",
+                   fontsize = 12,
+                   cellwidth = 25,
+                   cellheight = 20)
+
+pheatmap::pheatmap(heatmap.data,
+                   scale = "none",
+                   cluster_cols = F,
+                   fontsize_row = 1,
+                   fontsize_col = 20,
+                   angle_col = 0,
+                   cellwidth = 100,
+                   cellheight = 1)
+
+
+#write.csv(heatmap.data, file = "5mC.heatmap.data.csv")
+
+
+
+
+
+rm(list=ls())
+
+BSobj <- readRDS("manuscript/BSobj.h.rds")
+
+# cell type specific DMRs
+
+#targets.1 <- read.csv("manuscript/tables/DMLs/DMLs_5hmC_Treg.vs.Th0.csv", row.names = 1)
+#targets.2 <- read.csv("manuscript/tables/DMLs/DMLs_5hmC_Th1.vs.Th0.csv", row.names = 1)
+#targets.3 <- read.csv("manuscript/tables/DMLs/DMLs_5hmC_Th2.vs.Th0.csv", row.names = 1)
+#targets.4 <- read.csv("manuscript/tables/DMLs/DMLs_5hmC_Th17.vs.Th0.csv", row.names = 1)
+#targets.5 <- read.csv("manuscript/tables/DMLs/DMLs_5hmC_Th17.no.TGFb.vs.Th17.csv", row.names = 1)
+#targets.6 <- read.csv("manuscript/tables/DMLs/DMLs_5hmC_Th17.no.TGFb.vs.Th0.csv", row.names = 1)
+
+targets.1 <- read.csv("manuscript/tables/DMRs/DMRs_5hmC_Treg.vs.Th0.csv", row.names = 1)
+targets.2 <- read.csv("manuscript/tables/DMRs/DMRs_5hmC_Th1.vs.Th0.csv", row.names = 1)
+targets.3 <- read.csv("manuscript/tables/DMRs/DMRs_5hmC_Th2.vs.Th0.csv", row.names = 1)
+targets.4 <- read.csv("manuscript/tables/DMRs/DMRs_5hmC_Th17.vs.Th0.csv", row.names = 1)
+targets.5 <- read.csv("manuscript/tables/DMRs/DMRs_5hmC_Th17.no.Tgfb.vs.Th0.csv", row.names = 1)
+targets.6 <- read.csv("manuscript/tables/DMRs/DMRs_5hmC_Th17.no.TGFb.vs.Th17.csv", row.names = 1)
+
+targets <- rbind(targets.1, targets.2, targets.3, targets.4, targets.5, targets.6)
+
+targets <- targets[order(targets$nCG, decreasing = T), ]
+dup <- duplicated(targets$start)
+targets <- targets[!dup,]
+head(targets)
+nrow(targets) # 35
+#colnames(targets)[2] <- "start"
+#targets$end <- targets$start
+
+# smoothing doesn't work
+
+heatmap.data <- bsseq::getMeth(BSseq = BSobj,
+                               regions = GRanges(targets),
+                               type = "raw",
+                               what = "perRegion")
+head(heatmap.data)
+#rownames(heatmap.data) <- make.names(targets$name, unique = T)
+rownames(heatmap.data) <- targets$name
+
+#heatmap.data <-  na.omit(heatmap.data) %>% as.matrix()
+#heatmap.data <- heatmap.data + 0.001
+#dim(heatmap.data) # 303 16
+
+pheno <- as.data.frame(pData(BSobj))
+pheno$group <- as.factor(pheno$group)
+group.colors <- levels(as.factor(pheno$col))
+names(group.colors) <- levels(pheno$group)
+group.colors =  list(group = group.colors)
+
+pheno <- pheno[, "group", drop = F]
+levels(pheno$group)
+head(pheno)
+
+pheatmap::pheatmap(heatmap.data,
+                   scale = "row",
+                   annotation_col = pheno,
+                   annotation_colors = group.colors,
+                   show_rownames = T, fontsize_row = 12,
+                   show_colnames = T,
+                   angle_col = 45,
+                   border_color = "grey",
+                   main = "Cell type specific DMRs (5hmC)",
+                   fontsize = 14,
+                   cellwidth = 20,
+                   cellheight = 15)
+
+write.csv(heatmap.data, file = "manuscript/heatmaps/5hmC.targeted.heatmap.data.csv")
+
+
+
+
 # end ---------------------------------------------------------------------
 
 sessionInfo()

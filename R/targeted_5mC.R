@@ -711,8 +711,9 @@ heatmap.data %>%   na.omit() %>% as.matrix()
 
 pheno <- as.data.frame(pData(BSobj))
 pheno$group <- as.factor(pheno$group)
-group.colors <- levels(as.factor(pheno$col))
-names(group.colors) <- levels(pheno$group)
+
+group.colors <- unique(pheno$col)
+names(group.colors) <- unique(pheno$group)
 group.colors =  list(group = group.colors)
 
 pheno <- pheno[, "group", drop = F]
@@ -865,8 +866,9 @@ rownames(heatmap.data) <- targets$name
 
 pheno <- as.data.frame(pData(BSobj))
 pheno$group <- as.factor(pheno$group)
-group.colors <- levels(as.factor(pheno$col))
-names(group.colors) <- levels(pheno$group)
+
+group.colors <- unique(pheno$col)
+names(group.colors) <- unique(pheno$group)
 group.colors =  list(group = group.colors)
 
 pheno <- pheno[, "group", drop = F]
